@@ -1,0 +1,16 @@
+version: '2'
+services:
+    turtl:
+        restart: always
+        image: webofmars/turtl-docker
+        volumes:
+            - ./data:/var/lib/rethinkdb/instance1
+            - ./uploads:/opt/api/uploads
+        ports:
+            - '8181:8181'
+        environment:
+            - SITE_URL=https://turtl.example.com
+            - ADMIN_EMAIL=root@example.com
+            - LOCAL_UPLOAD_URL=http://turtl
+            - FQDN=turtl
+            - BINDADDR=0.0.0.0
