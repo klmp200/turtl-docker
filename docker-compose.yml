@@ -3,9 +3,8 @@ services:
     turtl:
         restart: always
         image: webofmars/turtl-docker
-        volumes:
-            - ./data:/var/lib/rethinkdb/instance1
-            - ./uploads:/opt/api/uploads
+        volumes_from:
+            - turtl-api-data
         ports:
             - '8181:8181'
         environment:
@@ -14,3 +13,12 @@ services:
             - LOCAL_UPLOAD_URL=http://turtl
             - FQDN=turtl
             - BINDADDR=0.0.0.0
+    turtl-api-data:
+        labels:
+            - "com.example.description=turtl storage"
+        entrypoint:
+            - /bin/true
+        image: busybox
+        volumes:
+            - /opt/api/uploads
+            - /var/lib/rethinkdb/instance1
