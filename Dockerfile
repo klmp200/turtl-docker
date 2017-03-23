@@ -1,6 +1,7 @@
 FROM ubuntu:16.04
 
-RUN apt-get update && apt-get install -y wget libterm-readline-perl-perl gcc libuv1-dev git nano
+RUN export DEBIAN_FRONTEND="noninteractive"
+RUN apt-get update -yqq > /dev/null && apt-get install -yqq wget libterm-readline-perl-perl gcc libuv1-dev git nano python-pip && apt autoclean
 
 # Install ccl
 RUN wget -P /opt/ ftp://ftp.clozure.com/pub/release/1.11/ccl-1.11-linuxx86.tar.gz && mkdir -p /opt/ccl && tar xvzf /opt/ccl-1.11-linuxx86.tar.gz -C /opt/ccl --strip-components=1
@@ -17,6 +18,9 @@ RUN echo "deb http://download.rethinkdb.com/apt xenial main" | tee /etc/apt/sour
 RUN cd /opt/ && git clone https://github.com/turtl/api.git --depth 1
 RUN cd /root/quicklisp/local-projects && git clone git://github.com/orthecreedence/cl-hash-util
 RUN /opt/ccl/lx86cl64 -l /root/quicklisp/setup.lisp
+
+# install python drivers
+RUN pip install rethinkdb
 
 # config
 COPY config.footer /opt/api/config/
