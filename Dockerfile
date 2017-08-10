@@ -1,40 +1,55 @@
-FROM ubuntu:16.04
+FROM debian:stretch-slim
 
-RUN export DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update -yqq > /dev/null && apt-get install -yqq wget libterm-readline-perl-perl gcc libuv1-dev git nano python-pip && apt autoclean
+RUN mkdir -p /opt/turtl /opt/ccl /opt/quicklisp
+COPY dist/* /tmp/
+
+# add s6-overlay
+RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / --exclude="./bin" && \
+    tar xzf /tmp/s6-overlay-amd64.tar.gz -C /usr ./bin
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update -yqq > /dev/null && \
+    apt-get install -yqq --no-install-recommends unzip          \
+                                                 libuv1-dev     \
+                                                 libssl1.0-dev  \
+                                                 libc-dev       \
+                                                 gcc            \
+                                                 curl           \
+                                                 > /dev/null && \
+    apt-get -y autoclean
 
 # Install ccl
-RUN wget -P /opt/ ftp://ftp.clozure.com/pub/release/1.11/ccl-1.11-linuxx86.tar.gz && mkdir -p /opt/ccl && tar xvzf /opt/ccl-1.11-linuxx86.tar.gz -C /opt/ccl --strip-components=1
+RUN tar xzf /tmp/ccl-1.11-linuxx86.tar.gz -C /opt/ccl --strip-components=1
 
 # install quicklisp
-COPY quicklisp_install /quicklisp_install
-RUN wget https://beta.quicklisp.org/quicklisp.lisp
-RUN cat /quicklisp_install | /opt/ccl/lx86cl64 --load /quicklisp.lisp
-
-# install RethinkDB
-RUN echo "deb http://download.rethinkdb.com/apt xenial main" | tee /etc/apt/sources.list.d/rethinkdb.list && wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | apt-key add - && apt-get update && apt-get install rethinkdb -y
+COPY quicklisp-init.lisp /opt/quicklisp/init.lisp
+RUN /opt/ccl/lx86cl64 --load /tmp/quicklisp.lisp < /opt/quicklisp/init.lisp
 
 # install turtl API
-RUN cd /opt/ && git clone https://github.com/turtl/api.git --depth 1
-RUN cd /root/quicklisp/local-projects && git clone git://github.com/orthecreedence/cl-hash-util
-RUN /opt/ccl/lx86cl64 -l /root/quicklisp/setup.lisp
+RUN cd /opt/turtl && unzip /tmp/turtl-api.zip && mv api-master api
 
-# install python drivers
-RUN pip install rethinkdb
+# push config & scipts
+COPY turtl-requirements.lisp /opt/turtl/api/requirements.lisp
+COPY turtl-setup /opt/turtl/setup
+#COPY turtl-start /opt/turtl/start
+COPY turtl-launch.lisp /opt/turtl/api/launch.lisp
+COPY etc/ /etc/
 
-# config
-COPY config.footer /opt/api/config/
-COPY turtl-setup /opt/
-COPY turtl-start /opt/
-RUN chmod a+x /opt/turtl-setup
-RUN chmod a+x /opt/turtl-start
-COPY launch.lisp /opt/api/
-COPY rethinkdb.conf /etc/rethinkdb/instances.d/instance1.conf
+# add confd
+RUN mv /tmp/confd-0.12.0-linux-amd64 /opt/confd && chmod a+x /opt/confd && /opt/confd --onetime --backend env
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# finalize setup
+RUN chmod a+x /opt/turtl/setup && /opt/turtl/setup
+
+# cleaning
+RUN rm -rf /tmp/* /var/lib/apt/lists/*
 
 # general settings
+
+HEALTHCHECK --interval=2m --timeout=3s \
+  CMD curl -f http://localhost:8181/ || exit 1
+
 EXPOSE 8181
-WORKDIR /opt/api
-VOLUME /var/lib/rethinkdb/instance1
-CMD /opt/turtl-setup
+WORKDIR /opt/turtl/api
+VOLUME /opt/turtl/api
+
+ENTRYPOINT ["/init"]

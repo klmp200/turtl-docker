@@ -1,1 +1,7 @@
-/etc/init.d/rethinkdb restart && cd /opt/api && /opt/ccl/lx86cl64 -l /root/quicklisp/setup.lisp -l launch.lisp
+#/bin/sh
+
+echo "+ regenrating configuration"
+/opt/confd --onetime --backend env
+
+echo "+ starting turtl"
+cd /opt/turtl/api && /opt/ccl/lx86cl64 -l /root/quicklisp/setup.lisp -l launch.lisp
