@@ -1,5 +1,9 @@
 # MacOS Stuff
 **/.DS_Store
 
+# Sublime Text 2 stuff
+/*.sublime-project
+/*.sublime-workspace
+
 # project stuff
 config.lisp
