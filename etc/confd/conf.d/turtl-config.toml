@@ -1,0 +1,32 @@
+[template]
+src = "turtl-config.lisp.tmpl"
+dest = "/opt/turtl/api/config/config.lisp"
+keys = [
+    "/turtl/pidfile",
+    "/turtl/bindaddr",
+    "/turtl/bindport",
+    "/turtl/dbname",
+    "/turtl/dbhost",
+    "/turtl/dbport",
+    "/turtl/debug",
+    "/turtl/hsts/header/max/age",
+    "/turtl/cors/resources",
+    "/turtl/url",
+    "/turtl/api/path",
+    "/turtl/email/admin",
+    "/turtl/email/from",
+    "/turtl/email/smtp/server",
+    "/turtl/email/smtp/user",
+    "/turtl/email/smtp/password",
+    "/turtl/display/errors",
+    "/turtl/storage/default-limit",
+    "/turtl/storage/invite-credit",
+    "/turtl/analytics/enabled",
+    "/turtl/analytics/dbname",
+    "/turtl/upload/local-path",
+    "/turtl/upload/local-url",
+    "/turtl/aws/s3/access/key",
+    "/turtl/aws/s3/secret/key",
+    "/turtl/aws/s3/bucket/name",
+    "/turtl/aws/s3/endpoint",
+]

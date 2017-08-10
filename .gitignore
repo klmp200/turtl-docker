@@ -1,2 +1,5 @@
+# MacOS Stuff
+**/.DS_Store
+
+# project stuff
 config.lisp
-volume
